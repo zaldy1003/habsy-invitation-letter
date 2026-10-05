@@ -133,3 +133,13 @@ Permintaan saat ini adalah implementasi desain ke React/Next.js. RSVP/database m
 - [x] Integrasi Supabase nyata via scripts/check-guests.mjs lulus: admin-only create/list, penolakan akun biasa, create replay, pencarian, link stabil, daftar tanpa token, personalisasi cover, navigasi, submit nyata, quota enforcement, upsert satu baris, moderation reset, revocation resolve/submit, anon ditolak. Data/akun uji dibersihkan.
 - [x] Tampilan desktop/390px ditinjau dan tidak overflow. Script pemeriksaan admin disesuaikan untuk tab Ucapan & doa. Dokumentasi penggunaan dan konfigurasi deployment ditambahkan.
 - Batas: tautan masih localhost karena frontend belum dipublikasikan. Tidak mengirim undangan ke siapa pun. Edit identitas/jatah, rotasi token, ekspor CSV belum dibuat; scope ini fokus tambah tamu/link/RSVP. Ledger migration tetap belum direkam karena penerapan langsung SQL.
+
+
+## 2026-10-05 — Konfigurasi OpenNext dan GitHub Actions
+- [x] OpenNext Cloudflare 1.20.8 dan Wrangler 4.147.0 dikunci di package/lockfile; konfigurasi Worker zaldy1003ii, assets, images dan self-reference tersedia.
+- [x] Workflow main/manual: validasi secrets/variables, npm ci, build OpenNext, typecheck, deploy dan sinkronisasi binding runtime. Secret tidak diberikan pada langkah build.
+- [x] Wrapper build melindungi env lokal dari embedding artifact; scan nilai secret Supabase dan guest key pada output build tidak menemukan kecocokan. Env lokal dipulihkan.
+- [x] Typecheck, build OpenNext, dan wrangler deploy --dry-run lulus; bundle gzip sekitar 1 MB. Tidak melakukan deployment publik.
+- [x] Runtime workerd lokal: halaman cover/undangan/admin HTTP 200, API admin tanpa sesi 401, baca ucapan Supabase 200, foto dan optimasi gambar 200. Audio merespons 200; pemeriksaan browser playback tambahan belum selesai karena alat approval terkena batas penggunaan.
+- [x] Dokumentasi repository secrets/variables dan pemicu Actions ditambahkan.
+- [ ] Pemilik mengisi konfigurasi GitHub dan push main, kemudian memeriksa workflow/deployment publik. Login dan RSVP produksi perlu diperiksa setelah hosting aktif.

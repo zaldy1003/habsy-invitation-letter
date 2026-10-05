@@ -137,3 +137,40 @@ node --env-file=.env.local scripts/check-guests.mjs
 ```
 
 Script memakai akun dan tamu uji sementara, membuktikan alur UI create → cover → RSVP → perubahan → pencabutan serta pembatasan akses/jatah/idempotensi. Setelah selesai, hanya akun/tamu/balasan uji yang dibersihkan.
+
+
+## Cloudflare Workers melalui GitHub Actions
+
+Worker produksi: `zaldy1003ii`. Konfigurasi tersedia di `wrangler.jsonc` dan `open-next.config.ts`; workflow `.github/workflows/deploy.yml` berjalan saat push ke `main` atau melalui **Actions → Deploy invitation to Cloudflare → Run workflow** pada branch main.
+
+Di repository GitHub, buka **Settings → Secrets and variables → Actions**. Buat **Repository secrets** berikut:
+
+| Secret | Isi |
+| --- | --- |
+| `CLOUDFLARE_API_TOKEN` | Token Cloudflare dengan izin deploy Workers untuk akun tujuan, misalnya template Edit Cloudflare Workers |
+| `CLOUDFLARE_ACCOUNT_ID` | Account ID Cloudflare 32 karakter, bukan nama Worker |
+| `SUPABASE_SECRET_KEY` | Secret server Supabase yang aktif |
+| `GUEST_TOKEN_KEY` | Nilai yang sama persis dari `.env.local`; jangan membuat key baru karena tautan tamu tersimpan memakai key ini |
+
+Pada tab **Variables**, buat **Repository variables**:
+
+| Variable | Isi |
+| --- | --- |
+| `SUPABASE_URL` | `https://xdmplzyichyfsdslfkug.supabase.co` |
+| `APP_ORIGIN` | `https://zaldy1003ii.dedeaftrizaldi1003.workers.dev` |
+
+Workflow memvalidasi konfigurasi, memasang dependency dari lockfile, membangun OpenNext, menjalankan typecheck, lalu deploy dan menyinkronkan empat binding runtime (Supabase URL/secret, guest key, origin). Publishable key tidak diperlukan untuk deployment aplikasi ini karena akses Supabase dilakukan di server. Tidak perlu menyalin `.env.local` ke GitHub atau mengisi binding yang sama secara manual pada dashboard Cloudflare.
+
+Commit konfigurasi beserta `package-lock.json`, lalu push ke `main`. Pantau workflow di tab **Actions**. Setelah sukses, buka URL Worker dan `/admin`, lalu periksa login, salin tautan tamu, dan RSVP. Workflow belum dijalankan pada GitHub saat konfigurasi ini dibuat. Tidak perlu mengaktifkan Workers Builds untuk alur GitHub Actions ini.
+
+Pemeriksaan lokal:
+
+```sh
+npm run build:cloudflare
+npm run typecheck
+npx wrangler deploy --dry-run
+```
+
+Build memakai wrapper yang sementara memindahkan file env lokal ke direktori sementara dan memulihkannya setelah proses selesai agar OpenNext tidak memasukkan secret ke artifact. Hindari mengubah env lokal saat build berjalan. Jika proses dihentikan paksa dengan SIGKILL, file dapat dipulihkan dari direktori sementara `habsy-build-env-*`. Runtime produksi memperoleh konfigurasi melalui binding Worker. `.open-next`, `.wrangler`, dan `.dev.vars*` diabaikan Git.
+
+Observability Worker dinonaktifkan dalam konfigurasi agar URL bertoken tamu tidak dicatat melalui Worker logs. Aplikasi ini tidak menggunakan ISR atau cache respons database, sehingga tidak memerlukan bucket R2. Referensi: [OpenNext Cloudflare](https://opennext.js.org/cloudflare/get-started) dan [Wrangler GitHub Action](https://github.com/cloudflare/wrangler-action).

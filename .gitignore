@@ -9,3 +9,8 @@ test-results/
 playwright-report/
 
 admin-access.local.txt
+
+# Cloudflare build output and local bindings
+.open-next/
+.wrangler/
+.dev.vars*
