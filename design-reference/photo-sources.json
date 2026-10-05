@@ -1,0 +1,18 @@
+[
+  {
+    "source": "Asset gambar/foto 1.png",
+    "publicPath": "/images/habsy-portrait.png",
+    "slot": "Participant portrait",
+    "width": 1024,
+    "height": 1536,
+    "treatment": "Original file copied without modification; original ratio preserved inside portrait arch."
+  },
+  {
+    "source": "Asset gambar/foto 2.png",
+    "publicPath": "/images/habsy-family.png",
+    "slot": "Family photo",
+    "width": 1122,
+    "height": 1402,
+    "treatment": "Original file copied without modification; full portrait ratio preserved."
+  }
+]
