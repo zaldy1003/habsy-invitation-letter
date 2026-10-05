@@ -40,6 +40,9 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
+      - name: Run unit tests
+        run: npm run test:unit
+
       # Runtime secrets are deliberately NOT passed to the build step.
       - name: Build Cloudflare Worker
         run: npm run build:cloudflare

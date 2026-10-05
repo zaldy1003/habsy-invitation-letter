@@ -10,7 +10,8 @@
     "test:e2e": "playwright test",
     "build:cloudflare": "node scripts/build-cloudflare.mjs",
     "preview:cloudflare": "opennextjs-cloudflare preview --ip 127.0.0.1",
-    "deploy:cloudflare": "opennextjs-cloudflare deploy"
+    "deploy:cloudflare": "opennextjs-cloudflare deploy",
+    "test:unit": "playwright test --config=playwright.unit.config.ts"
   },
   "dependencies": {
     "@fontsource-variable/eb-garamond": "5.3.0",

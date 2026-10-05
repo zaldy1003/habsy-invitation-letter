@@ -6,8 +6,8 @@ import { Ornament } from "./ornaments";
 
 type Draft = { name: string; attendance: "hadir" | "berhalangan"; message: string; publishConsent: boolean };
 type Wish = { id: string; name: string; message: string; created_at: string };
-const emptyDraft: Draft = { name: "", attendance: "hadir", message: "", publishConsent: false };
-const draftKey = "habsy-response-draft-v2";
+const emptyDraft: Draft = { name: "", attendance: "hadir", message: "", publishConsent: true };
+const draftKey = "habsy-response-draft-v3";
 
 export function Guestbook() {
   const [token, setToken] = useState<string | null | undefined>(undefined);
@@ -35,7 +35,7 @@ export function Guestbook() {
     try {
       const value = JSON.parse(localStorage.getItem(draftKey) || "null");
       if (value && typeof value.name === "string" && typeof value.message === "string" && ["hadir", "berhalangan"].includes(value.attendance)) {
-        setDraft({ name: value.name.slice(0,160), message: value.message.slice(0,1000), attendance: value.attendance, publishConsent: value.publishConsent === true });
+        setDraft({ name: value.name.slice(0,160), message: value.message.slice(0,1000), attendance: value.attendance, publishConsent: true });
         if (typeof value.requestId === "string") requestId.current = value.requestId;
       }
     } catch { /* Optional local draft. */ }
@@ -70,13 +70,11 @@ export function Guestbook() {
   return <div className="guestbook-card">
     <h2 className="icon-heading" id="guestbook-title"><Ornament name="envelope" />Konfirmasi Kehadiran &amp; Doa</h2>
     <p className="form-intro">Mohon konfirmasikan kehadiran Anda untuk membantu kelancaran jamuan silaturahmi.</p>
-    <p className="preview-note" id="response-note">Konfirmasi kehadiran disampaikan kepada keluarga. Nama dan ucapan hanya ditampilkan dengan izin Anda, setelah disetujui keluarga.</p>
-    {token === undefined ? <p className="form-status">Memuat formulir…</p> : token !== null ? <PrivateResponse token={token} /> : <form onSubmit={submit} aria-describedby="response-note" aria-busy={sending}>
+    {token === undefined ? <p className="form-status">Memuat formulir…</p> : token !== null ? <PrivateResponse token={token} /> : <form onSubmit={submit} aria-busy={sending}>
       <fieldset className="response-fields" disabled={sending || saved}>
         <div className="form-field"><label className="small-label" htmlFor="guest-name">Nama tamu / keluarga</label><input id="guest-name" name="name" autoComplete="name" placeholder="Contoh: Keluarga H. Sulaiman" required maxLength={160} value={draft.name} onChange={e => edit({ ...draft, name: e.target.value })} /></div>
         <fieldset className="form-field"><legend className="small-label">Konfirmasi kehadiran</legend><div className="attendance-options">{([{ value: "hadir", label: "Insya Allah Hadir" }, { value: "berhalangan", label: "Berhalangan" }] as const).map(option => <label className="attendance-option" key={option.value}><input type="radio" name="attendance" value={option.value} checked={draft.attendance === option.value} onChange={() => edit({ ...draft, attendance: option.value })} /><span className="radio-indicator" aria-hidden="true">{draft.attendance === option.value && <Ornament name="radio" />}</span><span>{option.label}</span></label>)}</div></fieldset>
         <div className="form-field"><label className="small-label" htmlFor="guest-message">Untaian doa &amp; ucapan</label><textarea id="guest-message" name="message" rows={3} placeholder="Tuliskan ucapan selamat dan doa untuk Al-Habsy..." maxLength={1000} value={draft.message} onChange={e => edit({ ...draft, message: e.target.value })} /></div>
-        <label className="publish-consent"><input type="checkbox" checked={draft.publishConsent} onChange={e => edit({ ...draft, publishConsent: e.target.checked })} />Saya mengizinkan nama dan ucapan saya ditampilkan di undangan.</label>
         <div className="form-trap" aria-hidden="true"><label htmlFor="guest-website">Website</label><input id="guest-website" name="website" ref={website} tabIndex={-1} autoComplete="off" /></div>
       </fieldset>
       <button className="button full-width" type="submit" disabled={sending || saved}><Ornament name="send" />{sending ? "Mengirim…" : saved ? "Konfirmasi tersimpan" : "Kirim ucapan & konfirmasi"}</button>

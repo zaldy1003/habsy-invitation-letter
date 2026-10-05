@@ -143,3 +143,11 @@ Permintaan saat ini adalah implementasi desain ke React/Next.js. RSVP/database m
 - [x] Runtime workerd lokal: halaman cover/undangan/admin HTTP 200, API admin tanpa sesi 401, baca ucapan Supabase 200, foto dan optimasi gambar 200. Audio merespons 200; pemeriksaan browser playback tambahan belum selesai karena alat approval terkena batas penggunaan.
 - [x] Dokumentasi repository secrets/variables dan pemicu Actions ditambahkan.
 - [ ] Pemilik mengisi konfigurasi GitHub dan push main, kemudian memeriksa workflow/deployment publik. Login dan RSVP produksi perlu diperiksa setelah hosting aktif.
+
+
+## 2026-10-05 — Form RSVP, QA dan performa
+- Hapus checkbox/paragraf izin; pengiriman UI baru masuk antrean moderasi. Tidak mengubah data historis secara massal.
+- Dropdown jumlah hadir mengikuti jatah undangan pribadi; berhalangan mengirim nol.
+- 9 unit test, 26 E2E Chromium/WebKit dan integrasi database/admin/tamu lulus. Build OpenNext serta typecheck lulus.
+- Unit test otomatis di Actions sebelum deploy. Script performa dan QA_REPORT.md mendokumentasikan hasil lokal/Cloudflare serta batas pengujian.
+- Belum push/deploy perubahan ini.

@@ -174,3 +174,22 @@ npx wrangler deploy --dry-run
 Build memakai wrapper yang sementara memindahkan file env lokal ke direktori sementara dan memulihkannya setelah proses selesai agar OpenNext tidak memasukkan secret ke artifact. Hindari mengubah env lokal saat build berjalan. Jika proses dihentikan paksa dengan SIGKILL, file dapat dipulihkan dari direktori sementara `habsy-build-env-*`. Runtime produksi memperoleh konfigurasi melalui binding Worker. `.open-next`, `.wrangler`, dan `.dev.vars*` diabaikan Git.
 
 Observability Worker dinonaktifkan dalam konfigurasi agar URL bertoken tamu tidak dicatat melalui Worker logs. Aplikasi ini tidak menggunakan ISR atau cache respons database, sehingga tidak memerlukan bucket R2. Referensi: [OpenNext Cloudflare](https://opennext.js.org/cloudflare/get-started) dan [Wrangler GitHub Action](https://github.com/cloudflare/wrangler-action).
+
+
+## QA dan pengujian
+
+Form RSVP tidak lagi menampilkan checkbox publikasi maupun paragraf izin. Pengiriman baru dari form masuk antrean moderasi keluarga (`publishConsent: true`); tidak ada perubahan massal pada data lama. Dropdown jumlah hadir pada undangan pribadi berisi 1 sampai jatah penerima; berhalangan mengirim 0. Form umum tanpa tautan tamu tetap tidak memiliki jatah pribadi.
+
+```sh
+npm run test:unit
+npm run build
+npm run typecheck
+npm run start
+# Di terminal lain, dengan server produksi di port 3000:
+npm run test:e2e
+node scripts/check-performance.mjs
+```
+
+Unit test tidak membutuhkan browser atau database dan dijalankan oleh GitHub Actions sebelum build/deploy. E2E memakai Chromium serta WebKit; sebagian API memakai simulasi agar regresi UI tidak menulis data produksi. Script check-database/check-admin/check-guests menguji integrasi Supabase nyata dengan akun/baris sementara yang dibersihkan setelah pengujian. Jalankan secara berurutan dengan `.env.local` dan server lokal aktif.
+
+Pengukuran performa: `PERF_ORIGIN=https://alamat-hosting node scripts/check-performance.mjs`. Hasil JSON ada di `test-results/performance.json`. Mengukur cover, undangan, dan login admin dengan viewport 390 px, CPU 4x, cache browser kosong, serta permintaan pembatasan jaringan CDP 1,6 Mbps/150 ms. Hasil localhost tidak mencerminkan latensi internet; ini pengukuran lab sekali jalan, bukan Lighthouse atau data pengguna nyata, dan tidak mengukur INP maupun beban serentak. Tes ini tidak mengirim RSVP. Laporan cakupan dan hasil ada di `QA_REPORT.md`.

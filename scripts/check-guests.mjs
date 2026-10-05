@@ -30,7 +30,7 @@ try {
  await invitation.goto(link);await invitation.locator('.cover-recipient').filter({hasText:guestName}).waitFor();await invitation.getByRole('link',{name:'Buka Undangan'}).click();
  const token=new URL(link).searchParams.get('guest');assert.equal(new URL(invitation.url()).searchParams.get('guest'),token);
  await invitation.getByLabel('Nama penerima',{exact:true}).waitFor();assert.equal(await invitation.getByLabel('Nama penerima',{exact:true}).inputValue(),guestName);
- await invitation.getByLabel('Jumlah yang hadir').fill('2');await invitation.getByLabel('Untaian doa & ucapan').fill('Semoga berkah selalu.');await invitation.getByLabel('Saya mengizinkan').check();await invitation.getByRole('button',{name:'Kirim ucapan & konfirmasi'}).click();await invitation.getByRole('button',{name:'Konfirmasi tersimpan'}).waitFor();
+ await invitation.getByLabel('Jumlah yang hadir').selectOption('2');await invitation.getByLabel('Untaian doa & ucapan').fill('Semoga berkah selalu.');await invitation.getByRole('button',{name:'Kirim ucapan & konfirmasi'}).click();await invitation.getByRole('button',{name:'Konfirmasi tersimpan'}).waitFor();
  const send=body=>visitor.request.post(`${origin}/api/invitation`,{headers:{origin},data:body});
  assert.equal((await send(submission)).status(),200);
  assert.equal((await send({...submission,requestId:randomUUID(),partySize:4})).status(),400);

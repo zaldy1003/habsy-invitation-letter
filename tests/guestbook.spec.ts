@@ -15,7 +15,7 @@ test("RSVP validates and keeps one request ID after a lost response", async ({ p
   await page.getByLabel("Nama tamu / keluarga").fill("Tamu Uji");
   await page.getByLabel("Berhalangan", { exact: true }).check();
   await page.getByLabel("Untaian doa & ucapan").fill("Semoga berkah");
-  await page.getByLabel("Saya mengizinkan").check();
+  await expect(page.getByText("Saya mengizinkan", { exact: false })).toHaveCount(0);
   await submit.click();
   await expect(page.locator(".guestbook-card form .form-status")).toContainText("Koneksi terputus");
   await page.reload();
@@ -26,6 +26,7 @@ test("RSVP validates and keeps one request ID after a lost response", async ({ p
   expect(submissions).toHaveLength(2);
   expect(submissions[0].requestId).toBe(submissions[1].requestId);
   expect(submissions[1].attendance).toBe("berhalangan");
+  expect(submissions[1].publishConsent).toBe(true);
   await expect(page.locator(".wishes")).not.toContainText("Tamu Uji");
 });
 
@@ -53,4 +54,39 @@ test("server rejects invalid origin, oversized and invalid payload before writin
   expect((await request.post("/api/guestbook", { headers: { origin: "https://other.example" }, data: {} })).status()).toBe(403);
   expect((await request.post("/api/guestbook", { headers: { origin: base }, data: { name: "a".repeat(9000) } })).status()).toBe(413);
   expect((await request.post("/api/guestbook", { headers: { origin: base }, data: {} })).status()).toBe(400);
+});
+
+test('private RSVP dropdown respects quota and sends zero for absence', async ({ page }) => {
+ const submissions: Record<string,unknown>[]=[];
+ await page.route('**/api/guestbook', route=>route.fulfill({json:{wishes:[]}}));
+ await page.route('**/api/invitation', route=>{
+  const body=route.request().postDataJSON();
+  if(body.action==='resolve')return route.fulfill({json:{guest:{name:'Keluarga Uji',max_party_size:3,invitation_responses:null}}});
+  submissions.push(body);return route.fulfill({json:{saved:true}});
+ });
+ await page.goto('/undangan?guest=test');
+ const party=page.getByRole('combobox',{name:'Jumlah yang hadir'});
+ await expect(party.locator('option')).toHaveText(['1 orang','2 orang','3 orang']);
+ await expect(page.getByLabel('Nama penerima')).toHaveAttribute('readonly','');
+ await expect(page.locator('.publish-consent, #response-note')).toHaveCount(0);
+ await party.selectOption('3');
+ await page.getByRole('button',{name:'Kirim ucapan & konfirmasi'}).click();
+ await expect(page.getByRole('button',{name:'Konfirmasi tersimpan'})).toBeDisabled();
+ expect(submissions[0].partySize).toBe(3);
+ expect(submissions[0].publishConsent).toBe(true);
+ await page.getByRole('button',{name:'Ubah konfirmasi saya'}).click();
+ await page.getByRole('combobox',{name:'Konfirmasi kehadiran'}).selectOption('berhalangan');
+ await expect(party).toHaveCount(0);
+ await page.getByRole('button',{name:'Kirim ucapan & konfirmasi'}).click();
+ await expect(page.getByRole('button',{name:'Konfirmasi tersimpan'})).toBeDisabled();
+ expect(submissions[1].partySize).toBe(0);
+ expect(submissions[1].requestId).not.toBe(submissions[0].requestId);
+});
+
+test('revoked private invitations never expose the general submission form', async ({page})=>{
+ await page.route('**/api/guestbook', route=>route.fulfill({json:{wishes:[]}}));
+ await page.route('**/api/invitation', route=>route.fulfill({status:403,json:{error:'Akses undangan telah dicabut.'}}));
+ await page.goto('/undangan?guest=revoked');
+ await expect(page.getByText('Akses undangan telah dicabut.')).toBeVisible();
+ await expect(page.getByRole('button',{name:'Kirim ucapan & konfirmasi'})).toHaveCount(0);
 });
